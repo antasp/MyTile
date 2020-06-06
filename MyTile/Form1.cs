@@ -142,7 +142,7 @@ namespace MyTile
         private void btnSave_Click(object sender, EventArgs e)
         {
             string sourceTile = txtImageFile.Text;
-            if (!System.IO.File.Exists(sourceTile))
+            if (sourceTile.Length > 0 && !System.IO.File.Exists(sourceTile))
             {
                 MessageBox.Show("No TileImage selected.");
                 return;
@@ -164,58 +164,68 @@ namespace MyTile
                 }
             }
 
-            if (txtTilename.Text.Equals("") || txtTilename.Text.Equals("tile.png"))
+            if (sourceTile.Length > 0)
             {
-                txtTilename.Text = getDefaultTilename(targetExe);
-            }
 
-            if (sourceTileSmall.Length > 0 && (txtSmallTilename.Text.Equals("") || txtSmallTilename.Text.Equals("tile-small.png")))
-            {
-                txtSmallTilename.Text = getDefaultSmalltileName(targetExe);
-            }
+                if (txtTilename.Text.Equals("") || txtTilename.Text.Equals("tile.png"))
+                {
+                    txtTilename.Text = getDefaultTilename(targetExe);
+                }
 
-            //copy the image.
-            string targetTile = Path.GetDirectoryName(targetExe) + @"\" + txtTilename.Text;
-            if (!sourceTile.Equals(targetTile))
-            {
-                System.IO.File.Copy(sourceTile, targetTile, true);
-            }
-
-            if (sourceTileSmall.Length > 0)
-            {
                 //copy the image.
-                string targetTileSmall = Path.GetDirectoryName(targetExe) + @"\" + txtSmallTilename.Text;
-                if (!sourceTileSmall.Equals(targetTileSmall))
-                    System.IO.File.Copy(sourceTileSmall, targetTileSmall, true);
+                string targetTile = Path.GetDirectoryName(targetExe) + @"\" + txtTilename.Text;
+                if (!sourceTile.Equals(targetTile))
+                {
+                    System.IO.File.Copy(sourceTile, targetTile, true);
+                }
             }
 
-            //copy our template
-            string sourceTemplate = "template.xml";
-            if (!System.IO.File.Exists(sourceTemplate))
-            {
-                MessageBox.Show("Our template xml is missing.");
-                return;
-            }
-            string targetTemplate = getTemplatePath(targetExe); // Path.GetDirectoryName(targetExe) + @"\" + Path.GetFileNameWithoutExtension(targetExe) + @".visualelementsmanifest.xml";
-            System.IO.File.Copy(sourceTemplate, targetTemplate, true);
-
-            //modify targetTemplate.
-            XDocument targetXml = XDocument.Load(targetTemplate);
-            XElement ve = targetXml.Element("Application").Element("VisualElements");
-            //XmlNode ve = targetXml.SelectSingleNode("/Application/VisualElements");
-
-            //show label?
-            ve.Attribute("ShowNameOnSquare150x150Logo").Value = (checkShowlabel.Checked ? "on" : "off");
-            ve.Attribute("ForegroundText").Value = (radioDark.Checked ? "dark" : "light");
-            ve.Attribute("BackgroundColor").Value = txtBg.Text;
-            ve.Attribute("Square150x150Logo").Value = txtTilename.Text;
-            ve.Attribute("Square70x70Logo").Value = txtTilename.Text;
             if (sourceTileSmall.Length > 0)
             {
-                ve.Attribute("Square70x70Logo").Value = txtSmallTilename.Text;
-            }
-            targetXml.Save(targetTemplate);
+                if (sourceTileSmall.Length > 0 && (txtSmallTilename.Text.Equals("") || txtSmallTilename.Text.Equals("tile-small.png")))
+                {
+                    txtSmallTilename.Text = getDefaultSmalltileName(targetExe);
+                }
 
+
+                if (sourceTileSmall.Length > 0)
+                {
+                    //copy the image.
+                    string targetTileSmall = Path.GetDirectoryName(targetExe) + @"\" + txtSmallTilename.Text;
+                    if (!sourceTileSmall.Equals(targetTileSmall))
+                        System.IO.File.Copy(sourceTileSmall, targetTileSmall, true);
+                }
+
+            }
+
+            XNamespace xsi = XNamespace.Get("http://www.w3.org/2001/XMLSchema-instance");
+
+            XDocument doc =
+             new XDocument(
+               new XElement("Application", new XAttribute(XNamespace.Xmlns + "xsi", xsi),
+                 new XElement("VisualElements",
+                    new XAttribute("ShowNameOnSquare150x150Logo", checkShowlabel.Checked ? "on" : "off"),
+                    new XAttribute("ForegroundText", radioDark.Checked ? "dark" : "light"),
+                    new XAttribute("BackgroundColor", txtBg.Text)
+                    )
+               )
+             );
+
+            var ve = doc.Element("Application").Element("VisualElements");
+
+            if (sourceTile.Length > 0)
+            {
+                ve.Add(new XAttribute("Square150x150Logo", txtTilename.Text));
+                ve.Add(new XAttribute("Square70x70Logo", txtTilename.Text));
+            }
+            
+            if (sourceTileSmall.Length > 0)
+            {
+                ve.Add(new XAttribute("Square70x70Logo", txtSmallTilename.Text));
+            }
+
+            string targetTemplate = getTemplatePath(targetExe);
+            doc.Save(targetTemplate);
 
             string lnkFile = lstStartmenu.SelectedItem.ToString();
             refreshLnk(lnkFile);
@@ -289,34 +299,39 @@ namespace MyTile
         {
             XDocument targetXml = XDocument.Load(templatePath);
             XElement ve = targetXml.Element("Application").Element("VisualElements");
-            return ve.Attribute("Square150x150Logo").Value;
+            var attribute = ve.Attribute("Square150x150Logo");
+            return attribute != null ? attribute.Value : "";
         }
 
         private String getSmallTileNameFromXML(String targetExe, String templatePath)
         {
             XDocument targetXml = XDocument.Load(templatePath);
             XElement ve = targetXml.Element("Application").Element("VisualElements");
-            return ve.Attribute("Square70x70Logo").Value;
+            var attribute = ve.Attribute("Square70x70Logo");
+            return attribute != null ? attribute.Value : "";
         }
 
         private String getTileColorFromXML(String targetExe, String templatePath)
         {
             XDocument targetXml = XDocument.Load(templatePath);
             XElement ve = targetXml.Element("Application").Element("VisualElements");
-            return ve.Attribute("BackgroundColor").Value;
+            var attribute = ve.Attribute("BackgroundColor");
+            return attribute != null ? attribute.Value : "";
         }
         private String getTextColorFromXML(String targetExe, String templatePath)
         {
             XDocument targetXml = XDocument.Load(templatePath);
             XElement ve = targetXml.Element("Application").Element("VisualElements");
-            return ve.Attribute("ForegroundText").Value;
+            var attribute = ve.Attribute("ForegroundText");
+            return attribute != null ? attribute.Value : "";
         }
 
         private String getTextStateFromXML(String targetExe, String templatePath)
         {
             XDocument targetXml = XDocument.Load(templatePath);
             XElement ve = targetXml.Element("Application").Element("VisualElements");
-            return ve.Attribute("ShowNameOnSquare150x150Logo").Value;
+            var attribute = ve.Attribute("ShowNameOnSquare150x150Logo");
+            return attribute != null ? attribute.Value : "";
         }
 
         private String getTilePathFromXML(String targetExe, String templatePath)
