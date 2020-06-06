@@ -66,8 +66,6 @@ namespace MyTile
             pictureBox1.ImageLocation = "";
             pictureBox2.ImageLocation = "";
 
-          
-
             if (System.IO.File.Exists(targetTemplate))
             {
                 //we already have a template here!
@@ -80,37 +78,36 @@ namespace MyTile
 
                 string tilePath = Path.GetDirectoryName(targetExe) + @"\" + tilename;
                 string smalltilePath = Path.GetDirectoryName(targetExe) + @"\" + smalltilename;
+
+                txtBg.Text = tilecolor;
+
+                if (text == "off")
+                {
+                    checkShowlabel.Checked = false;
+                }
+                else if(text == "on")
+                {
+                    checkShowlabel.Checked = true;
+                }
+
+                if(textcolor == "dark")
+                {
+                    radioDark.Checked = true;
+                    radioLight.Checked = false;
+                }
+                else if(textcolor == "light")
+                {
+                    radioDark.Checked = false;
+                    radioLight.Checked = true;
+                }
+                   
                 if (!tilename.Equals("") && System.IO.File.Exists(tilePath))
                 {
                     pictureBox1.ImageLocation = tilePath;
                     txtImageFile.Text = tilePath;
                     txtTilename.Text = tilename;
-                    txtBg.Text = tilecolor;
-
-                    if(text == "off")
-                    {
-                        checkShowlabel.Checked = false;
-                    }
-                    else if(text == "on")
-                    {
-                        checkShowlabel.Checked = true;
-                    }
-                   
-
-                    if(textcolor == "dark")
-                    {
-                        radioDark.Checked = true;
-                        radioLight.Checked = false;
-                    }
-                    else if(textcolor == "light")
-                    {
-                        radioDark.Checked = false;
-                        radioLight.Checked = true;
-                    }
-                   
-
-
                 }
+
                 if (!smalltilename.Equals("") && System.IO.File.Exists(smalltilePath))
                 {
                     pictureBox2.ImageLocation = smalltilePath;
@@ -216,7 +213,12 @@ namespace MyTile
             if (sourceTile.Length > 0)
             {
                 ve.Add(new XAttribute("Square150x150Logo", txtTilename.Text));
-                ve.Add(new XAttribute("Square70x70Logo", txtTilename.Text));
+
+                if (!(sourceTileSmall.Length > 0))
+                {
+                    ve.Add(new XAttribute("Square70x70Logo", txtTilename.Text));
+                }
+                
             }
             
             if (sourceTileSmall.Length > 0)
@@ -381,7 +383,7 @@ namespace MyTile
 
         private void resetColor_Click(object sender, EventArgs e)
         {
-            txtBg.Text = "#0078D7";
+            txtBg.Text = "#404040";
         }
     }
 }
