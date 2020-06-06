@@ -61,15 +61,23 @@ namespace MyTile
             txtImageFile.Text = "";
             txtImageSmall.Text = "";
             txtTilename.Text = "";
+            txtBg.Text = "";
             txtSmallTilename.Text = "";
             pictureBox1.ImageLocation = "";
             pictureBox2.ImageLocation = "";
+
+          
 
             if (System.IO.File.Exists(targetTemplate))
             {
                 //we already have a template here!
                 string tilename = getTileNameFromXML(targetExe, targetTemplate);
                 string smalltilename = getSmallTileNameFromXML(targetExe, targetTemplate);
+                string tilecolor = getTileColorFromXML(targetExe, targetTemplate);
+                string textcolor = getTextColorFromXML(targetExe, targetTemplate);
+                string text = getTextStateFromXML(targetExe, targetTemplate);
+
+
                 string tilePath = Path.GetDirectoryName(targetExe) + @"\" + tilename;
                 string smalltilePath = Path.GetDirectoryName(targetExe) + @"\" + smalltilename;
                 if (!tilename.Equals("") && System.IO.File.Exists(tilePath))
@@ -77,6 +85,31 @@ namespace MyTile
                     pictureBox1.ImageLocation = tilePath;
                     txtImageFile.Text = tilePath;
                     txtTilename.Text = tilename;
+                    txtBg.Text = tilecolor;
+
+                    if(text == "off")
+                    {
+                        checkShowlabel.Checked = false;
+                    }
+                    else if(text == "on")
+                    {
+                        checkShowlabel.Checked = true;
+                    }
+                   
+
+                    if(textcolor == "dark")
+                    {
+                        radioDark.Checked = true;
+                        radioLight.Checked = false;
+                    }
+                    else if(textcolor == "light")
+                    {
+                        radioDark.Checked = false;
+                        radioLight.Checked = true;
+                    }
+                   
+
+
                 }
                 if (!smalltilename.Equals("") && System.IO.File.Exists(smalltilePath))
                 {
@@ -266,6 +299,26 @@ namespace MyTile
             return ve.Attribute("Square70x70Logo").Value;
         }
 
+        private String getTileColorFromXML(String targetExe, String templatePath)
+        {
+            XDocument targetXml = XDocument.Load(templatePath);
+            XElement ve = targetXml.Element("Application").Element("VisualElements");
+            return ve.Attribute("BackgroundColor").Value;
+        }
+        private String getTextColorFromXML(String targetExe, String templatePath)
+        {
+            XDocument targetXml = XDocument.Load(templatePath);
+            XElement ve = targetXml.Element("Application").Element("VisualElements");
+            return ve.Attribute("ForegroundText").Value;
+        }
+
+        private String getTextStateFromXML(String targetExe, String templatePath)
+        {
+            XDocument targetXml = XDocument.Load(templatePath);
+            XElement ve = targetXml.Element("Application").Element("VisualElements");
+            return ve.Attribute("ShowNameOnSquare150x150Logo").Value;
+        }
+
         private String getTilePathFromXML(String targetExe, String templatePath)
         {
             String tilePathCandidate = Path.GetDirectoryName(targetExe) + @"\tile.png";
@@ -311,5 +364,9 @@ namespace MyTile
             lstStartmenu.EndUpdate();
         }
 
+        private void resetColor_Click(object sender, EventArgs e)
+        {
+            txtBg.Text = "#0078D7";
+        }
     }
 }
